@@ -1,0 +1,42 @@
+# Настройки источника данных
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+# Настройки безопасности
+application:
+  security:
+    jwt:
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      expiration: 86400000 # 1 день в миллисекундах
+      refresh-token:
+        expiration: 604800000 # 7 дней в миллисекундах
+
+# Настройки логирования
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
+
+# Настройки хранения файлов
+file:
+  storage:
+    directory: uploads # путь к каталогу для хранения загруженных файлов
