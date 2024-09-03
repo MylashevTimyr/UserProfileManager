@@ -143,6 +143,6 @@ public class UserService {
 	}
 
 	public Optional<User> findByUsername(String username) {
-		return userRepository.findByEmail(username); // Предполагается, что username — это email
+		return userRepository.findByEmail(username);
 	}
 }

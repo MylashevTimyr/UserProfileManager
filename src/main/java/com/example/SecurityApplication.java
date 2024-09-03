@@ -34,6 +34,15 @@ public class SecurityApplication {
 					.build();
 			System.out.println("User token: " + service.register(user).getAccessToken());
 
+			var user2 = RegisterRequest.builder()
+					.firstname("User2")
+					.lastname("User2")
+					.email("user2@mail.com")
+					.password("password2")
+					.role(USER)
+					.build();
+			System.out.println("User2 token: " + service.register(user2).getAccessToken());
+
 			// Создание пользователя с ролью ADMIN
 			var admin = RegisterRequest.builder()
 					.firstname("Admin")

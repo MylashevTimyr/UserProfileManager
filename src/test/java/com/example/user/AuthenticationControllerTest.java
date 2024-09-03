@@ -49,6 +49,7 @@ public class AuthenticationControllerTest {
 
 	@Test
 	public void testRegisterUser() throws Exception {
+		// Тело запроса для регистрации нового пользователя
 		String requestBody = """
             {
                 "firstname": "Test",
@@ -62,12 +63,13 @@ public class AuthenticationControllerTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(requestBody))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.access_token").isNotEmpty())  // Fixed JSON path
+				.andExpect(jsonPath("$.access_token").isNotEmpty())  // Проверка, что токен не пуст
 				.andDo(print());
 	}
 
 	@Test
 	public void testAuthenticateUser() throws Exception {
+		// Тело запроса для аутентификации существующего пользователя
 		String requestBody = """
             {
                 "email": "user@example.com",
@@ -78,13 +80,13 @@ public class AuthenticationControllerTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(requestBody))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.access_token").isNotEmpty())  // Fixed JSON path
+				.andExpect(jsonPath("$.access_token").isNotEmpty())  // Проверка, что токен не пуст
 				.andDo(print());
 	}
 
 	@Test
 	public void testLogoutUser() throws Exception {
-		// First authenticate to get a valid JWT token
+		// Сначала аутентифицируемся, чтобы получить валидный JWT токен
 		String authRequest = """
             {
                 "email": "user@example.com",
@@ -101,7 +103,7 @@ public class AuthenticationControllerTest {
 				.split(":")[1]
 				.replaceAll("[\"}]", "").trim();
 
-		// Logout with the obtained token
+		// Выходим из системы, используя полученный токен
 		mockMvc.perform(post("/api/users/logout")
 						.header("Authorization", "Bearer " + token))
 				.andExpect(status().isOk())

@@ -2,7 +2,6 @@ package com.example.photo;
 
 import com.example.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,13 +25,13 @@ public class UserPhoto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne // Changed from @OneToOne to @ManyToOne to allow multiple photos per user.
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
     private User user;
 
     @Column(nullable = false)
-    private String filePath; // Путь к файлу на диске вместо BLOB
+    private String filePath;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

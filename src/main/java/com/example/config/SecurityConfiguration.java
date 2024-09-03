@@ -25,8 +25,8 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecurityConfiguration {
 
     private static final String[] WHITE_LIST_URLS = {
-            "/api/users/register",
-            "/api/users/authenticate",
+            "/api/user/register",
+            "/api/user/authenticate",
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs/**",
@@ -46,13 +46,14 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)  // Disable CSRF for APIs
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(WHITE_LIST_URLS).permitAll()
-                        .requestMatchers(GET, "/api/user/**").hasRole(ADMIN.name())
-                        .requestMatchers(POST, "/api/user/**", "/api/users/logout").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(PUT, "/api/user/**").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(DELETE, "/api/user/**").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/users/me").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/users/**").hasRole(ADMIN.name())
+                        .requestMatchers(POST, "/api/users/**", "/api/user/logout").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(PUT, "/api/users/**").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(DELETE, "/api/users/**").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/user-photo/all").hasRole(ADMIN.name())
                         .requestMatchers(POST, "/api/user-photo/**", "/api/user-photo").hasAnyRole(ADMIN.name(), USER.name())
@@ -73,3 +74,4 @@ public class SecurityConfiguration {
         return http.build();
     }
 }
+
