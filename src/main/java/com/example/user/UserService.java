@@ -1,7 +1,7 @@
 package com.example.user;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,24 +20,21 @@ public class UserService {
 	private final PasswordEncoder passwordEncoder;
 	private final UserRepository userRepository;
 
-	public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
-		// Получить текущего пользователя из Principal
-		var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+	public void changePassword(ChangePasswordRequest request, Principal principal) {
+		// Получить аутентифицированного пользователя из Principal
+		String currentPrincipalName = principal.getName();
 
-		// Проверить, что текущий пароль правильный
+		// Найти пользователя в вашей базе данных
+		User user = userRepository.findByEmail(currentPrincipalName)
+				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+		// Проверить текущий пароль
 		if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-			throw new IllegalStateException("Wrong password");
+			throw new IllegalArgumentException("Current password is incorrect");
 		}
 
-		// Проверить, что новый пароль и его подтверждение совпадают
-		if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
-			throw new IllegalStateException("Passwords are not the same");
-		}
-
-		// Обновить пароль
+		// Установить новый пароль
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-
-		// Сохранить обновленного пользователя
 		userRepository.save(user);
 	}
 

@@ -71,7 +71,6 @@ public class UserController {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 	}
 
-	// Изменить пароль пользователя (доступно только авторизованным пользователям)
 	@PatchMapping("/change-password")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Principal principal) {

@@ -1,6 +1,5 @@
 package com.example.auth;
 
-import com.example.config.LogoutService;  // Импортируем LogoutService
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
