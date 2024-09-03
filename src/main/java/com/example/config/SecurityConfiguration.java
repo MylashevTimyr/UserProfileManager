@@ -50,7 +50,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(WHITE_LIST_URLS).permitAll()
                         .requestMatchers(GET, "/api/user/**").hasRole(ADMIN.name())
-                        .requestMatchers(POST, "/api/user/**").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(POST, "/api/user/**", "/api/users/logout").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(PUT, "/api/user/**").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(DELETE, "/api/user/**").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
