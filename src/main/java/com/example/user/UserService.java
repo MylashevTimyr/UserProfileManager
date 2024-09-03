@@ -1,6 +1,8 @@
 package com.example.user;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,25 +23,20 @@ public class UserService {
 	private final UserRepository userRepository;
 
 	public void changePassword(ChangePasswordRequest request, Principal principal) {
-		// Получить аутентифицированного пользователя из Principal
 		String currentPrincipalName = principal.getName();
-
-		// Найти пользователя в вашей базе данных
 		User user = userRepository.findByEmail(currentPrincipalName)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-		// Проверить текущий пароль
 		if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
 			throw new IllegalArgumentException("Current password is incorrect");
 		}
 
-		// Установить новый пароль
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		userRepository.save(user);
 	}
 
-	public List<User> getAllUsers() {
-		return userRepository.findAll();
+	public Page<User> getAllUsers(Pageable pageable) {
+		return userRepository.findAll(pageable);
 	}
 
 	public User getUserById(Long id) {
@@ -48,26 +45,19 @@ public class UserService {
 	}
 
 	public UserResponseDto updateUser(Long id, User userDetails) {
-		User user = getUserById(id); // Этот метод может выбросить исключение, если пользователь не найден
+		User user = getUserById(id);
 
-		// Проверка валидности предоставленных данных
 		validateUserDetails(userDetails);
 
-		// Обновление полей пользователя
 		user.setFirstname(capitalize(userDetails.getFirstname()));
 		user.setLastname(capitalize(userDetails.getLastname()));
-		user.setMiddlename(userDetails.getMiddlename()); // Добавляем строку для обновления отчества
+		user.setMiddlename(userDetails.getMiddlename());
 		user.setEmail(userDetails.getEmail());
 		user.setPhoneNumber(userDetails.getPhoneNumber());
-
-		// Добавляем строку для обновления даты рождения
 		user.setBirthdate(userDetails.getBirthdate());
 
 		try {
-			// Сохранение обновленного пользователя
 			User updatedUser = userRepository.save(user);
-
-			// Преобразование в DTO
 			return new UserResponseDto(updatedUser);
 		} catch (Exception e) {
 			throw new RuntimeException("Error updating user. Please try again later.");
@@ -75,17 +65,14 @@ public class UserService {
 	}
 
 	private void validateUserDetails(User userDetails) {
-		// Проверка email
 		if (userDetails.getEmail() == null || !userDetails.getEmail().contains("@")) {
 			throw new IllegalArgumentException("Invalid email format.");
 		}
 
-		// Проверка даты (если предоставлена)
 		if (userDetails.getBirthdate() != null && !isValidDate(userDetails.getBirthdate().toString())) {
 			throw new IllegalArgumentException("Invalid date format. Expected format is yyyy-MM-dd.");
 		}
 
-		// Проверка ФИО
 		if (userDetails.getFirstname() != null && !isCapitalized(userDetails.getFirstname())) {
 			throw new IllegalArgumentException("Firstname must start with a capital letter.");
 		}
@@ -93,14 +80,12 @@ public class UserService {
 			throw new IllegalArgumentException("Lastname must start with a capital letter.");
 		}
 
-		// Проверка номера телефона
 		if (userDetails.getPhoneNumber() != null && !isValidPhoneNumber(userDetails.getPhoneNumber())) {
 			throw new IllegalArgumentException("Phone number must be in the format +7 *** *** ** **.");
 		}
 	}
 
 	private boolean isValidLocalDate(LocalDate date) {
-		// Проверяем, что дата не является нулевой
 		return date != null;
 	}
 
@@ -119,7 +104,6 @@ public class UserService {
 	}
 
 	private boolean isValidPhoneNumber(String phoneNumber) {
-		// Регулярное выражение для проверки формата номера телефона
 		String phoneNumberPattern = "\\+7 \\d{3} \\d{3} \\d{2} \\d{2}";
 		return Pattern.matches(phoneNumberPattern, phoneNumber);
 	}

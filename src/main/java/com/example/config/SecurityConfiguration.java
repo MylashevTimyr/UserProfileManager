@@ -46,20 +46,14 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)  // Disable CSRF for APIs
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(WHITE_LIST_URLS).permitAll()
-                        .requestMatchers(GET, "/api/users/me").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/users/**").hasRole(ADMIN.name())
-                        .requestMatchers(POST, "/api/users/**", "/api/user/logout").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(PUT, "/api/users/**").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(DELETE, "/api/users/**").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/user-photo/all").hasRole(ADMIN.name())
-                        .requestMatchers(POST, "/api/user-photo/**", "/api/user-photo").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(POST, "/api/user-photo/save").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(PUT, "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(DELETE, "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/users/me", "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/users/**", "/api/user-photo/all").hasRole(ADMIN.name())
+                        .requestMatchers(POST, "/api/users/**", "/api/user/logout", "/api/user-photo/**", "/api/user-photo", "/api/user-photo/save").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(PUT, "/api/users/**", "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(DELETE, "/api/users/**", "/api/user-photo/**").hasAnyRole(ADMIN.name(), USER.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

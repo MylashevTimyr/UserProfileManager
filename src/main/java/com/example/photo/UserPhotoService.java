@@ -5,16 +5,18 @@ import com.example.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,38 +34,54 @@ public class UserPhotoService {
 		validatePhotoFormat(photo);
 		validatePhotoSize(photo);
 
-		String photoPath = savePhoto(photo, user.getId().toString());
+		// Проверка, существует ли уже такая фотография у пользователя
+		boolean photoExists = repository.existsByUserAndFileName(user, photo.getOriginalFilename());
+		if (photoExists) {
+			throw new IllegalArgumentException("This photo already exists for the user.");
+		}
+
+		// Сохранение фотографии с оригинальным именем файла
+		String photoPath = savePhoto(photo, photo.getOriginalFilename());
 
 		UserPhoto userPhoto = UserPhoto.builder()
 				.user(user)
 				.filePath(photoPath)
+				.fileName(photo.getOriginalFilename())  // сохраняем оригинальное имя файла для отображения
 				.build();
 
 		repository.save(userPhoto);
 	}
 
-	public List<UserPhoto> findAllByUserId(Long userId) {
-		return repository.findByUserId(userId);
+	public Page<UserPhoto> findAllByUserId(Long userId, Pageable pageable) {
+		return repository.findByUserId(userId, pageable);
+	}
+
+	public Resource loadPhoto(String photoPath) throws MalformedURLException {
+		if (photoPath == null || photoPath.isEmpty()) {
+			throw new IllegalArgumentException("Путь к фотографии не может быть пустым.");
+		}
+
+		Path photo = Paths.get(photoPath).normalize();
+		Resource resource = new UrlResource(photo.toUri());
+		if (resource.exists() && resource.isReadable()) {
+			return resource;
+		} else {
+			throw new RuntimeException("Не удалось прочитать фотографию: " + photoPath);
+		}
 	}
 
 	public void deleteById(Long photoId) throws IOException {
 		UserPhoto photo = repository.findById(photoId)
 				.orElseThrow(() -> new IllegalArgumentException("Photo not found with id: " + photoId));
 
-		// Delete photo file from disk
 		deletePhoto(photo.getFilePath());
 
-		// Delete photo record from the database
 		repository.delete(photo);
 	}
 
 	public UserPhoto findById(Long id) {
 		return repository.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Photo not found with id: " + id));
-	}
-
-	public List<UserPhoto> findAll() {
-		return repository.findAll();
 	}
 
 	public boolean isOwnerOrAdmin(String username, Long userId) {
@@ -87,36 +105,16 @@ public class UserPhotoService {
 		repository.save(existingPhoto);
 	}
 
-	private String savePhoto(MultipartFile photo, String userId) throws IOException {
-		Files.createDirectories(rootLocation);
+	private String savePhoto(MultipartFile photo, String originalFileName) throws IOException {
+		Path destinationFile = this.rootLocation.resolve(
+						Paths.get(originalFileName))
+				.normalize().toAbsolutePath();
 
-		String originalFilename = photo.getOriginalFilename();
-
-		if (originalFilename == null || originalFilename.isEmpty()) {
-			throw new IllegalArgumentException("Фотография не содержит имени.");
+		try (InputStream inputStream = photo.getInputStream()) {
+			Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
 		}
 
-		String newPhotoName = userId + "_" + System.currentTimeMillis() + "_" + originalFilename;
-
-		Path photoPath = rootLocation.resolve(newPhotoName).normalize();
-
-		Files.copy(photo.getInputStream(), photoPath, StandardCopyOption.REPLACE_EXISTING);
-
-		return photoPath.toString();
-	}
-
-	public Resource loadPhoto(String photoPath) throws MalformedURLException {
-		if (photoPath == null || photoPath.isEmpty()) {
-			throw new IllegalArgumentException("Путь к фотографии не может быть пустым.");
-		}
-
-		Path photo = Paths.get(photoPath).normalize();
-		Resource resource = new UrlResource(photo.toUri());
-		if (resource.exists() && resource.isReadable()) {
-			return resource;
-		} else {
-			throw new RuntimeException("Не удалось прочитать фотографию: " + photoPath);
-		}
+		return destinationFile.toString();
 	}
 
 	private void deletePhoto(String photoPath) throws IOException {
@@ -136,7 +134,7 @@ public class UserPhotoService {
 	}
 
 	private void validatePhotoSize(MultipartFile photo) {
-		long maxSize = 5 * 1024 * 1024; // 5MB
+		long maxSize = 5 * 1024 * 1024;
 		if (photo.getSize() > maxSize) {
 			throw new IllegalArgumentException("Размер фотографии превышает максимальный допустимый размер 5MB.");
 		}

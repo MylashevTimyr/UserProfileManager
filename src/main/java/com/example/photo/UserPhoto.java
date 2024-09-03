@@ -25,7 +25,7 @@ public class UserPhoto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne // Changed from @OneToOne to @ManyToOne to allow multiple photos per user.
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
     private User user;
@@ -33,11 +33,14 @@ public class UserPhoto {
     @Column(nullable = false)
     private String filePath;
 
+    @Column(nullable = false)
+    private String fileName;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createDate;
 
     @LastModifiedDate
-    @Column(insertable = false)
-    private LocalDateTime lastModified;
+    private LocalDateTime lastModifiedDate;
+
 }

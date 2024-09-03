@@ -1,12 +1,14 @@
 package com.example.photo;
 
+import com.example.user.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface UserPhotoRepository extends JpaRepository<UserPhoto, Long> {
-
-	List<UserPhoto> findByUserId(Long userId);
+	boolean existsByUserAndFileName(User user, String fileName);
+	long countByUser(User user);
+	Page<UserPhoto> findByUserId(Long userId, Pageable pageable);
 }
